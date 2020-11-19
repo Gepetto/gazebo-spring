@@ -1,0 +1,47 @@
+# Copyright 2020 CNRS
+cmake_minimum_required(VERSION 3.1)
+
+# Project properties
+set(PROJECT_ORG gepetto)
+set(PROJECT_NAME gazebo-spring)
+set(PROJECT_DESCRIPTION "A spring plugin for gazebo")
+set(PROJECT_URL "https://github.com/${PROJECT_ORG}/${PROJECT_NAME}")
+
+# Project options
+OPTION(SUFFIX_SO_VERSION "Suffix library name with its version" ON)
+
+# Project configuration
+SET(PROJECT_USE_CMAKE_EXPORT TRUE)
+
+# JRL-cmakemodule setup
+include(cmake/base.cmake)
+
+# Project definition
+COMPUTE_PROJECT_ARGS(PROJECT_ARGS LANGUAGES CXX)
+project(${PROJECT_NAME} ${PROJECT_ARGS})
+#CHECK_MINIMAL_CXX_STANDARD(11 ENFORCE)
+
+# Project dependencies
+find_package(gazebo REQUIRED)
+find_package(catkin REQUIRED COMPONENTS roscpp)
+
+if(NOT ${gazebo_VERSION} VERSION_LESS 11)
+  CHECK_MINIMAL_CXX_STANDARD(17 ENFORCE)
+endif()
+
+# Main Library
+SET(${PROJECT_NAME}_HEADERS
+  )
+
+SET(${PROJECT_NAME}_SOURCES
+  src/SpringPlugin.cc
+  )
+
+ADD_LIBRARY(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS})
+TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE ${GAZEBO_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+
+IF(SUFFIX_SO_VERSION)
+  SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES SOVERSION ${PROJECT_VERSION})
+ENDIF(SUFFIX_SO_VERSION)
+
+INSTALL(TARGETS ${PROJECT_NAME} EXPORT ${TARGETS_EXPORT_NAME} DESTINATION lib)
